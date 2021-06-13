@@ -1,0 +1,49 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-3
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng1-public
+    instanceType: m5.xlarge
+    instanceName: custom-node-name
+    desiredCapacity: 4
+  - name: ng2-private
+    instanceType: m5.large
+    desiredCapacity: 10
+    privateNetworking: true
+apiVersion: eksctl.io/v1alpha4
+kind: ClusterConfig
+metadata:
+  name: test-cluster-c-1
+  region: eu-north-1
+
+vpc:
+  securityGroup: "sg-0f2ae54eb340e8191"
+  sharedNodeSecurityGroup: "sg-02a47cee779b317a7"
+  subnets:
+    Private:
+      eu-north-1c:
+          id: "subnet-065fe8f12d0910d06"
+          cidr: "10.1.128.0/19"
+      eu-north-1b:
+          id: "subnet-06ebc3649c1321fc5"
+          cidr: "10.1.96.0/19"
+
+iam: 
+  serviceRoleARN: "arn:aws:iam::123:role/eksctl-test-cluster-a-3-cluster-ServiceRole-5YEWP7CFA24K"
+
+nodeGroups:
+  - name: ng2-private
+    instanceType: m5.large
+    desiredCapacity: 1
+    privateNetworking: true
+    securityGroups:
+      withShared: true
+      withLocal: false
+      attachIDs: [sg-0b85ff315ea644478]
+    iam:
+      instanceProfileARN: "arn:aws:iam::123:instance-profile/eksctl-test-cluster-a-3-nodegroup-ng2-private-NodeInstanceProfile-Y4YKHLNINMXC"
+      instanceRoleARN: "arn:aws:iam::123:role/eksctl-test-cluster-a-3-nodegroup-NodeInstanceRole-DNGMQTQHQHBJ"
