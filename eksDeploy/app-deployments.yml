@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addressbook-deployment
+  labels:
+    app: addr-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: addressbook
+  template:
+    metadata:
+      name: addressbook-app
+      labels:
+        app: addressbook 
+    spec:
+      containers:
+        - name: addr-pod
+          image: docker.io/pgpillai/addressbook
+          ports:
+          - containerPort: 3000
+          env:
+            - name: DB_SCHEMA
+              value: postgres
+            - name: DB_HOST
+              value: postgres
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: 
+                  name: postgres-secrets
+                  key: postgres-root-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: 
+                  name: postgres-secrets
+                  key: postgres-root-password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: addressbook
+spec:
+  type: NodePort
+  selector:
+    app: addressbook
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30004
