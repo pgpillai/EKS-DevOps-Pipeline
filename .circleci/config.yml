@@ -1,0 +1,34 @@
+version: 2.1
+commands:
+
+jobs:
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+      # Docker image here that supports AWS CLI
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Ensure VPC infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file awsEnv/network.yml \
+              --tags project=EksDevops \
+              --stack-name "EksDevops-network-${CIRCLE_WORKFLOW_ID}" \
+              --parameters =  file://awsEnv/network-parameter.json
+            echo "${CIRCLE_WORKFLOW_ID}"
+              
+      - run:
+          name: Ensure EKS Cluster exist
+          command: |
+            aws cloudformation deploy \
+              --template-file awsEnv/EksCluster.yml \
+              --tags project=EksDevops \
+              --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
+              --parameters =file://awsEnv/server-parameter.json  
+              
+
+workflows:
+  default:
+    jobs:

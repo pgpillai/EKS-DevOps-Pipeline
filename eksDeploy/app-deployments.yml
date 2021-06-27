@@ -43,7 +43,7 @@ kind: Service
 metadata:
   name: addressbook
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: addressbook
   ports:

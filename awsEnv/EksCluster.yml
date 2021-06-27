@@ -1,0 +1,125 @@
+Description: 
+  Amazon EKS using CloudFormation
+  Ponniah Pillai
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+Resources:
+
+  ClusterRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: "ClusterRole"
+        #RoleName: !Join [ ",", [ !Ref ControlPlaneSecurityGroup, !Sub "${EnvironmentName}", ClusterRole]]
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - eks.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+        Path: /
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        Tags: 
+            - Key: Name 
+              Value: !Sub ${EnvironmentName} ClusterRole
+      
+  WorkerNodeRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: "WorkerNodeRole"
+        #RoleName: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] !Sub ${EnvironmentName} WorkerRole]
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - ec2.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+        Path: /
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+          - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+          - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        Tags: 
+            - Key: Name 
+              Value: !Sub ${EnvironmentName} WorkerNodeRole
+  
+  ControlPlaneSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Cluster communication with worker nodes
+        VpcId: 
+          Fn::ImportValue:
+            !Sub "${EnvironmentName}-VPCID"
+
+  EksCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: EksDevops
+      Version: '1.19'
+      RoleArn: !GetAtt ClusterRole.Arn
+        #- !Ref ClusterRole]
+        #- !GetAtt ClusterRole.Arn
+        #- arn:aws:iam::048074722734:role/ClusterRole
+        #- Fn::GetAtt: ["ClusterRole", "Arn" ]
+        #- Fn::ImportValue: !Sub ${EnvironmentName}-ClusterRole
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref ControlPlaneSecurityGroup
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${EnvironmentName}-PUB-SUBNET1
+          - Fn::ImportValue: !Sub ${EnvironmentName}-PUB-SUBNET2
+          - Fn::ImportValue: !Sub ${EnvironmentName}-PVT-SUBNET1
+          - Fn::ImportValue: !Sub ${EnvironmentName}-PVT-SUBNET2
+  
+  EKSNodegroup:
+    Type: 'AWS::EKS::Nodegroup'
+    Properties:
+      ClusterName: !Ref EksCluster
+      NodeRole: !GetAtt WorkerNodeRole.Arn 
+        #- !Ref WorkerNodeRole
+        #- Fn::GetAtt: ["WorkerNodeRole", "Arn" ]
+        #- Fn::ImportValue: !Sub ${EnvironmentName}-WorkerNodeRole
+      ScalingConfig:
+        MinSize: 3
+        DesiredSize: 5
+        MaxSize: 7
+      Labels:
+        Key1: Value1
+        Key2: Value2
+      Subnets:
+        - Fn::ImportValue: !Sub ${EnvironmentName}-PVT-SUBNET1
+        - Fn::ImportValue: !Sub ${EnvironmentName}-PVT-SUBNET2
+  CniAddon:
+    Type: AWS::EKS::Addon
+    Properties: 
+      AddonName: vpc-cni
+      AddonVersion: v1.7.5-eksbuild.2
+      ClusterName: !Ref EksCluster
+      ResolveConflicts: OVERWRITE
+        
+  # CoreDNSAddon:
+  #   Type: AWS::EKS::Addon
+  #   Properties: 
+  #     AddonName: CoreDNS
+  #     AddonVersion: v1.8.0-eksbuild.1
+  #     ClusterName: !Ref EksCluster
+  #     ResolveConflicts: OVERWRITE
+        
+  KubeProxyAddon:
+    Type: AWS::EKS::Addon
+    Properties: 
+      AddonName: kube-proxy
+      AddonVersion: v1.19.6-eksbuild.2
+      ClusterName: !Ref EksCluster
+      ResolveConflicts: OVERWRITE
+
+              
