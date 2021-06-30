@@ -16,7 +16,7 @@ jobs:
 
             cd addressbook
             npm i
-            npm run build
+            #npm run build
       - save_cache:
           paths: [addressbook/node_modules]
           key: app-build
@@ -38,6 +38,46 @@ jobs:
             cd addressbook
             npm run lint
 
+  test-db:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      
+      - run:
+          name: Run integration test
+          command: |
+            cd addressbook
+            docker run -it -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
+            npm run test
+
+  integration-test:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      
+      - run:
+          name: Run integration test
+          command: |
+            cd addressbook
+            docker run -it -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
+            npm run migrate
+            npm run pm2
+            curl -w "\n" \
+            -X PUT \
+            -d "firstName=Bobbie&lastName=Draper" \
+            localhost:3000/persons
+            URL=localhost:3000/persons/all
+            if curl -s "${URL}" | grep "Welcome"
+            then
+              echo "FE worked";
+            else
+              echo "FE failed";
+              exit 1;
+            fi
   build-and-push-container:
     docker:
       - image: circleci/node:13.8.0
@@ -59,20 +99,6 @@ jobs:
             
             docker push -t pgpillai/addressbook:$TAG .
       
-  
-  integration-test:
-    docker:
-      - image: circleci/node:13.8.0
-      # Docker image here
-    steps:
-      - checkout
-      
-      - run:
-          name: Run integration test
-          command: |
-            cd addressbook
-            npm run lint
-
 
   deploy-infrastructure:
     docker:
@@ -121,7 +147,8 @@ workflows:
   default:
     jobs:
       - build-application
-      - lint-code
+      - lint-code:
+          requires: [build-application]
       - build-and-push-container:
           requires: [build-application]
       
