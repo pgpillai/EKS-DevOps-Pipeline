@@ -44,10 +44,13 @@ jobs:
       # Docker image here
     steps:
       - checkout
+      - restore_cache:
+          keys: [app-build]
       - setup_remote_docker
       - run:
           name: Install dependencies
           command: |
+            cd addressbook
             apk update && \
             apk add --update nodejs
            
