@@ -44,7 +44,7 @@ jobs:
       # Docker image here
     steps:
       - checkout
-      
+      - setup_remote_docker
       - run:
           name: Run integration test
           command: |
@@ -58,7 +58,7 @@ jobs:
       # Docker image here
     steps:
       - checkout
-      
+      - setup_remote_docker
       - run:
           name: Run integration test
           command: |
@@ -152,7 +152,7 @@ workflows:
       - test-db:
           requires: [lint-code]
       - integration-test:
-          requires: [lint-code]
+          requires: [test-db]
       - build-and-push-container:
           requires: [integration-test]
       
