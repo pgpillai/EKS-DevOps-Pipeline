@@ -52,7 +52,7 @@ jobs:
           command: |
             cd addressbook
             apk update && \
-            apk add --update nodejs nodejs-npm
+            apk add --update nodejs-current 
            
       - run:
           name: Run DB test
