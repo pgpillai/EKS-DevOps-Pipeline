@@ -60,7 +60,10 @@ jobs:
             cd addressbook
             docker run -it -d -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
       - run: echo "Initializing build with docker stack"
-      - run: npm run test
+      - run: 
+          command: |
+            cd addressbook
+            npm run test
 
   integration-test:
     docker:
