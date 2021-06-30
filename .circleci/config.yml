@@ -2,6 +2,78 @@ version: 2.1
 commands:
 
 jobs:
+
+  build-application:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [app-build]
+      - run:
+          name: Build node app
+          command: |
+
+            cd addressbook
+            npm i
+            npm run build
+      - save_cache:
+          paths: [addressbook/node_modules]
+          key: app-build
+
+  lint-code:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      # Checkout code from git
+      # Restore from cache
+      # Your job code here
+      - restore_cache:
+          keys: [app-build]
+      - run:
+          name: Scan addressbook
+          command: |
+            cd addressbook
+            npm run lint
+
+  build-and-push-container:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      # Checkout code from git
+      # Restore from cache
+      # Your job code here
+      - restore_cache:
+          keys: [app-build]
+      - run:
+          name: build docker image
+          command: |
+            cd addressbook
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker build -t pgpillai/addressbook:$TAG .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            
+            docker push -t pgpillai/addressbook:$TAG .
+      
+  
+  integration-test:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      
+      - run:
+          name: Run integration test
+          command: |
+            cd addressbook
+            npm run lint
+
+
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -27,8 +99,29 @@ jobs:
               --tags project=EksDevops \
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameters =file://awsEnv/server-parameter.json  
-              
+
+  deploy-rolling-update:
+    docker:
+      - image: circleci/node:13.8.0
+      # Docker image here
+    steps:
+      - checkout
+      # Checkout code from git
+      # Restore from cache
+      # Your job code here
+      - restore_cache:
+          keys: [app-build]
+      - run:
+          name: Scan addressbook
+          command: |
+            cd addressbook
+            npm run lint            
 
 workflows:
   default:
     jobs:
+      - build-application
+      - lint-code
+      - build-and-push-container
+          requires: [build-application]
+      
