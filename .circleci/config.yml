@@ -46,11 +46,12 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Run integration test
+          name: Run DB test
           command: |
             cd addressbook
             docker run -it -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
-            npm run test
+      - run: echo "Initializing build with docker stack"
+      - run: npm run test
 
   integration-test:
     docker:
