@@ -50,7 +50,7 @@ jobs:
           command: |
             apk update && \
             apk add --update nodejs
-            apk add npm
+           
       - run:
           name: Run DB test
           command: |
