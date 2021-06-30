@@ -46,6 +46,11 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Install dependencies
+          command: |
+            apk add nodejs
+            apk add npm
+      - run:
           name: Run DB test
           command: |
             cd addressbook
