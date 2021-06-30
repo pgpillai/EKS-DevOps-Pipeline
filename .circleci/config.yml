@@ -122,6 +122,6 @@ workflows:
     jobs:
       - build-application
       - lint-code
-      - build-and-push-container
+      - build-and-push-container:
           requires: [build-application]
       
