@@ -149,6 +149,10 @@ workflows:
       - build-application
       - lint-code:
           requires: [build-application]
+      - test-db:
+          requires: [lint-code]
+      - integration-test:
+          requires: [lint-code]
       - build-and-push-container:
-          requires: [build-application]
+          requires: [integration-test]
       
