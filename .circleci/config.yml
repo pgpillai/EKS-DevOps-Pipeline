@@ -1,6 +1,8 @@
 version: 2.1
 commands:
 
+orbs:
+  kubernetes: circleci/kubernetes@0.12.0
 jobs:
 
   build-application:
@@ -137,7 +139,7 @@ jobs:
             docker build -t $DOCKER_USER/addressbook:$TAG .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             
-            docker push  $DOCKER_USER/addressbook:$TAG 
+      #docker push  $DOCKER_USER/addressbook:$TAG 
       
 
   deploy-infrastructure:
@@ -147,6 +149,8 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - restore_cache:
+          keys: [kubeconfig]
       - run:
           name: Ensure VPC infrastructure exists
           command: |
@@ -165,23 +169,28 @@ jobs:
               --tags project=EksDevops \
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameters =file://awsEnv/server-parameter.json  
+            aws eks --region <region-code> update-kubeconfig --name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}"
+            cp ~/.kube/config addressbook/kubeconfig
+      - save_cache:
+          paths: [addressbook/kubeconfig]
+          key: kubeconfig
 
   deploy-rolling-update:
     docker:
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
       # Docker image here
     steps:
       - checkout
-      # Checkout code from git
-      # Restore from cache
-      # Your job code here
       - restore_cache:
-          keys: [app-build]
-      - run:
-          name: Scan addressbook
-          command: |
-            cd addressbook
-            npm run lint            
+          keys: [kubeconfig]
+
+      - kubernetes/install-kubectl
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: eksDeploy/postgres-secrets.yaml
+          resource-name: postgres-deployment
+          show-kubectl-command: true
+                       
 
 workflows:
   default:
@@ -195,4 +204,8 @@ workflows:
           requires: [test-db]
       - build-and-push-container:
           requires: [integration-test]
+      - deploy-infrastructure:
+          requires: [integration-test]
+      - deploy-rolling-update:
+           requires: [deploy-infrastructure]
       

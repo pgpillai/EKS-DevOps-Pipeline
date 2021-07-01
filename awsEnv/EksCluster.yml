@@ -106,13 +106,13 @@ Resources:
       ClusterName: !Ref EksCluster
       ResolveConflicts: OVERWRITE
         
-  # CoreDNSAddon:
-  #   Type: AWS::EKS::Addon
-  #   Properties: 
-  #     AddonName: CoreDNS
-  #     AddonVersion: v1.8.0-eksbuild.1
-  #     ClusterName: !Ref EksCluster
-  #     ResolveConflicts: OVERWRITE
+  CoreDNSAddon:
+    Type: AWS::EKS::Addon
+    Properties: 
+      AddonName: coredns
+      AddonVersion: v1.8.0-eksbuild.1
+      ClusterName: !Ref EksCluster
+      ResolveConflicts: OVERWRITE
         
   KubeProxyAddon:
     Type: AWS::EKS::Addon
