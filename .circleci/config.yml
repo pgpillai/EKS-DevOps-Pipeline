@@ -52,8 +52,6 @@ jobs:
           name: Install dependencies
           command: |
             cd addressbook
-            apk update && \
-            apk add --update nodejs-current npm
            
       - run:
           name: Run DB Docker
