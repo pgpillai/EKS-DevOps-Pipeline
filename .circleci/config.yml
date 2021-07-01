@@ -98,7 +98,7 @@ jobs:
             dockerize -wait tcp://localhost:5432 -timeout 1m
             npm i
             npm run migrate
-            npm run pm2
+            npm run pm2 &
             dockerize -wait tcp://localhost:3000 -timeout 1m
             curl -w "\n" \
             -X PUT \
