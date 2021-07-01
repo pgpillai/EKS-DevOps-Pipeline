@@ -38,31 +38,37 @@ jobs:
             cd addressbook
             npm run lint
 
-  test-db:
+  test-backend:
     docker:
       #- image: docker:17.05.0-ce-git
       - image: circleci/node:13.8.0
+      - image: circleci/postgres:9.6.10
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
       # Docker image here
     steps:
       - checkout
       - restore_cache:
           keys: [app-build]
-      - setup_remote_docker
-      - run:
-          name: Install dependencies
-          command: |
-            cd addressbook
+      #- setup_remote_docker
            
+      # - run:
+      #     name: Run DB Docker
+      #     command: |
+      #       cd addressbook
+      #       docker run -it -d -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
+      #- run: sleep 5 && nc -vz localhost 5432
       - run:
-          name: Run DB Docker
-          command: |
-            cd addressbook
-            docker run -it -d -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
-      - run: echo "Initializing build with docker stack"
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
       - run: 
           name: Run DB test
           command: |
             cd addressbook
+            dockerize -wait tcp://localhost:5432 -timeout 1m
             npm i
             npm run test
 
