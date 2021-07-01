@@ -137,7 +137,7 @@ jobs:
             docker build -t $DOCKER_USER/addressbook:$TAG .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             
-            docker push -t $DOCKER_USER/addressbook:$TAG 
+            docker push  $DOCKER_USER/addressbook:$TAG 
       
 
   deploy-infrastructure:
