@@ -160,6 +160,7 @@ jobs:
       - run:
           name: Ensure VPC infrastructure exists
           command: |
+            
             aws cloudformation deploy \
               --template-file awsEnv/network.yml \
               --tags project=EksDevops \
@@ -170,12 +171,13 @@ jobs:
       - run:
           name: Ensure EKS Cluster exist
           command: |
+            
             aws cloudformation deploy \
               --template-file awsEnv/EksCluster.yml \
               --tags project=EksDevops \
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameters file://awsEnv/server-parameter.json  
-            aws eks --region $REGION update-kubeconfig --name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}"
+            aws eks update-kubeconfig --name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}"
             cp ~/.kube/config addressbook/kubeconfig
       - save_cache:
           paths: [addressbook/kubeconfig]
