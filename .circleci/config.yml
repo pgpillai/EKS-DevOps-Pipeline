@@ -76,22 +76,35 @@ jobs:
     docker:
       - image: docker:17.05.0-ce-git
       # Docker image here
+      - image: circleci/postgres:9.6.10
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
     steps:
       - checkout
-      - setup_remote_docker
+      - restore_cache:
+          keys: [app-build]
+      #- setup_remote_docker
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
       - run:
           name: Run integration test
           command: |
             cd addressbook
-            docker run -it -e "POSTGRES_HOST_AUTH_METHOD=trust" -p 5432:5432 postgres
+            dockerize -wait tcp://localhost:5432 -timeout 1m
+            npm i
             npm run migrate
             npm run pm2
+            dockerize -wait tcp://localhost:3000 -timeout 1m
             curl -w "\n" \
             -X PUT \
             -d "firstName=Bobbie&lastName=Draper" \
             localhost:3000/persons
             URL=localhost:3000/persons/all
-            if curl -s "${URL}" | grep "Welcome"
+            if curl -s "${URL}" | grep "Bobbie"
             then
               echo "FE worked";
             else
