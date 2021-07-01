@@ -74,8 +74,9 @@ jobs:
 
   integration-test:
     docker:
-      - image: docker:17.05.0-ce-git
+      #- image: docker:17.05.0-ce-git
       # Docker image here
+      - image: circleci/node:13.8.0
       - image: circleci/postgres:9.6.10
         environment:
           POSTGRES_USER: postgres
