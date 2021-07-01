@@ -40,7 +40,8 @@ jobs:
 
   test-db:
     docker:
-      - image: docker:17.05.0-ce-git
+      #- image: docker:17.05.0-ce-git
+      - image: circleci/node:13.8.0
       # Docker image here
     steps:
       - checkout
