@@ -38,7 +38,7 @@ jobs:
             cd addressbook
             npm run lint
 
-  test-backend:
+  test-db:
     docker:
       #- image: docker:17.05.0-ce-git
       - image: circleci/node:13.8.0
