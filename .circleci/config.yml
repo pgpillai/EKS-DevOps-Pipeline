@@ -217,7 +217,39 @@ jobs:
           resource-file-path: eksDeploy/app-deployments.yml
           resource-name: Deployment/addressbook-deployment
           show-kubectl-command: true
-                       
+      - run:
+          name: Install dependencies
+          command: |
+            echo `kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+
+  smoke-test:
+    docker:
+      # Docker image here
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: Run smoke test
+          command: |
+            HOST-NAME=`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+            dockerize -wait tcp://$HOST-NAME:3000 -timeout 1m
+            curl -w "\n" \
+            -X PUT \
+            -d "firstName=Bobbie&lastName=Draper" \
+            $HOST-NAME:3000/persons
+            URL=$HOST-NAME:3000/persons/all
+            if curl -s "${URL}" | grep "Bobbie"
+            then
+              echo "smoke test worked";
+            else
+              echo "smoke test failed";
+              exit 1;
+            fi                  
 
 workflows:
   default:
