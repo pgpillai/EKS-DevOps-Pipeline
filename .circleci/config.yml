@@ -268,4 +268,6 @@ workflows:
       - deploy-rolling-update:
            #requires: [deploy-infrastructure]
            requires: [build-and-push-container]
+      - smoke-test:
+           requires: [deploy-rolling-update]
       
