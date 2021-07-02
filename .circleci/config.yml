@@ -195,7 +195,7 @@ jobs:
           command: |
             yum install -y tar
             yum install -y gzip
-            yum install gettext
+            yum install -y gettext
             aws eks update-kubeconfig --name "EksDevops"
             envsubst < eksDeploy/app-deployments.yml | tee eksDeploy/app-deployments.yml
       - restore_cache:
