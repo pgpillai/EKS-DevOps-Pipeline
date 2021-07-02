@@ -178,7 +178,7 @@ jobs:
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
 
-            aws eks update-kubeconfig --name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}"
+            aws eks update-kubeconfig --name "EksDevops"
             cp ~/.kube/config addressbook/kubeconfig
       - save_cache:
           paths: [addressbook/kubeconfig]
