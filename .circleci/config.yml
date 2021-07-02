@@ -177,7 +177,7 @@ jobs:
               --tags project=EksDevops \
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
-              
+
             aws eks update-kubeconfig --name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}"
             cp ~/.kube/config addressbook/kubeconfig
       - save_cache:
@@ -195,6 +195,7 @@ jobs:
           command: |
             yum install -y tar
             yum install -y gzip
+            aws eks update-kubeconfig --name "EksDevops-cluster-c900dac7-eaa9-4d89-8235-505815297c43"
       - restore_cache:
           keys: [kubeconfig]
 
@@ -218,8 +219,8 @@ workflows:
           requires: [test-db]
       - build-and-push-container:
           requires: [integration-test]
-      - deploy-infrastructure:
-          requires: [build-and-push-container]
+      #- deploy-infrastructure:
+          #requires: [build-and-push-container]
       - deploy-rolling-update:
            requires: [deploy-infrastructure]
       

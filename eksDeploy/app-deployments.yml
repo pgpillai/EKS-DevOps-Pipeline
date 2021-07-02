@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: addr-pod
-          image: docker.io/pgpillai/addressbook
+          image: docker.io/$DOCKER_USER/addressbook:0.1.100
           ports:
           - containerPort: 3000
           env:
