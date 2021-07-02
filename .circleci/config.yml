@@ -196,6 +196,7 @@ jobs:
             yum install -y tar
             yum install -y gzip
             aws eks update-kubeconfig --name "EksDevops"
+            envsubst < eksDeploy/app-deployments.yml | tee eksDeploy/app-deployments.yml
       - restore_cache:
           keys: [kubeconfig]
 
