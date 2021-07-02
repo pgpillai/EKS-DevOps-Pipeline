@@ -218,7 +218,7 @@ jobs:
           resource-name: Deployment/addressbook-deployment
           show-kubectl-command: true
       - run:
-          name: Install dependencies
+          name: get application URL
           command: |
             echo `kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
 
@@ -233,10 +233,11 @@ jobs:
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
           environment:
             DOCKERIZE_VERSION: v0.3.0
+      - kubernetes/install-kubectl
       - run:
           name: Run smoke test
           command: |
-            HOST-NAME=`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+            HOST-NAME=$`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
             dockerize -wait tcp://$HOST-NAME:3000 -timeout 1m
             curl -w "\n" \
             -X PUT \
