@@ -202,8 +202,18 @@ jobs:
       - kubernetes/install-kubectl
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
-          resource-file-path: eksDeploy/postgres-secrets.yaml
+          resource-file-path: eksDeploy/postgres-secrets.yml
           resource-name: postgres-deployment
+          show-kubectl-command: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: eksDeploy/db-deployments.yml
+          resource-name: db-deployment
+          show-kubectl-command: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: eksDeploy/app-deployments.yml
+          resource-name: addressbook-deployment
           show-kubectl-command: true
                        
 
