@@ -195,7 +195,7 @@ jobs:
           command: |
             yum install -y tar
             yum install -y gzip
-            aws eks update-kubeconfig --name "EksDevops-cluster-c900dac7-eaa9-4d89-8235-505815297c43"
+            aws eks update-kubeconfig --name "EksDevops"
       - restore_cache:
           keys: [kubeconfig]
 
