@@ -225,7 +225,7 @@ jobs:
   smoke-test:
     docker:
       # Docker image here
-      - image: circleci/node:13.8.0
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
@@ -237,7 +237,8 @@ jobs:
       - run:
           name: Run smoke test
           command: |
-            HOST-NAME=$`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+            aws eks update-kubeconfig --name "EksDevops"
+            export HOST-NAME=`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
             dockerize -wait tcp://$HOST-NAME:3000 -timeout 1m
             curl -w "\n" \
             -X PUT \
