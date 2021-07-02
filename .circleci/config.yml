@@ -222,5 +222,6 @@ workflows:
       #- deploy-infrastructure:
           #requires: [build-and-push-container]
       - deploy-rolling-update:
-           requires: [deploy-infrastructure]
+           #requires: [deploy-infrastructure]
+           requires: [build-and-push-container]
       
