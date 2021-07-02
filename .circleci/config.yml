@@ -242,13 +242,13 @@ jobs:
           name: Run smoke test
           command: |
             aws eks update-kubeconfig --name "EksDevops"
-            export HOST-NAME=`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
-            dockerize -wait tcp://$HOST-NAME:3000 -timeout 1m
+            export PUBLICIP=`kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+            dockerize -wait tcp://$PUBLICIP:3000 -timeout 1m
             curl -w "\n" \
             -X PUT \
             -d "firstName=Bobbie&lastName=Draper" \
-            $HOST-NAME:3000/persons
-            URL=$HOST-NAME:3000/persons/all
+            $PUBLICIP:3000/persons
+            URL=$PUBLICIP:3000/persons/all
             if curl -s "${URL}" | grep "Bobbie"
             then
               echo "smoke test worked";
