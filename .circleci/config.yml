@@ -2,11 +2,7 @@ version: 2.1
 
 commands:
   rollback-deployment:
-    description: Rollback to the Original release.
-    parameters:
-      workflow_id:
-        type: string
-      # Add parameter here   
+    description: Rollback to the Original release. 
     steps:
       - checkout
       - run:
@@ -294,6 +290,7 @@ jobs:
               echo "smoke test failed";
               exit 1;
             fi  
+
       - rollback-deployment:                
 
 workflows:
