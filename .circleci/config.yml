@@ -16,7 +16,7 @@ commands:
             export TAG_NUMBER=<< pipeline.number >>
             envsubst < eksDeploy/app-deployments.yml | tee eksDeploy/app-deployments.yml
             kubectl rollout undo -f eksDeploy/app-deployments.yml
-            kubectl rollout undo -f eksDeploy/db-deployments.yml
+            #kubectl rollout undo -f eksDeploy/db-deployments.yml
 
 orbs:
   kubernetes: circleci/kubernetes@0.12.0
