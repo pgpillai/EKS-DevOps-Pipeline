@@ -161,8 +161,8 @@ jobs:
       infra-tag:
         type: boolean
     steps:
-      when: << paramaters.infra-tag >>
-      # Checkout code from git
+      - when:
+        condition: << paramaters.infra-tag >>
         steps:
           - checkout
           - run:
