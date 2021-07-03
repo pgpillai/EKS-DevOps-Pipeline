@@ -1,6 +1,6 @@
 version: 2.1
 parameters:
-      infra-tag:
+      build_infra:
         type: boolean
         default: false
 
