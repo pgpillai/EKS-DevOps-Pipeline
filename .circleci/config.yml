@@ -1,4 +1,8 @@
 version: 2.1
+parameters:
+      infra-tag:
+        type: boolean
+        default: false
 
 commands:
   rollback-deployment:
@@ -157,48 +161,37 @@ jobs:
     docker:
       - image: amazon/aws-cli
       # Docker image here that supports AWS CLI
-    parameters:
-      infra-tag:
-        type: boolean
     steps:
-      - when:
-        condition: << paramaters.infra-tag >>
-        steps:
-          - checkout
-          - run:
-              name: Install dependencies
-              command: |
-                yum install -y tar
-                yum install -y gzip
-          - restore_cache:
-              keys: [kubeconfig]
+      
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y tar
+            yum install -y gzip   
+      - run:
+          name: Ensure VPC infrastructure exists
+          command: |
             
-          - run:
-              name: Ensure VPC infrastructure exists
-              command: |
-                
-                aws cloudformation deploy \
-                  --template-file awsEnv/network.yml \
-                  --tags project=EksDevops \
-                  --stack-name "EksDevops-network-${CIRCLE_WORKFLOW_ID}" \
-                  --parameter-overrides  file://awsEnv/network-parameter.json --capabilities CAPABILITY_NAMED_IAM
-                echo "${CIRCLE_WORKFLOW_ID}"
-                  
-          - run:
-              name: Ensure EKS Cluster exist
-              command: |
-                
-                aws cloudformation deploy \
-                  --template-file awsEnv/EksCluster.yml \
-                  --tags project=EksDevops \
-                  --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
-                  --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
+            aws cloudformation deploy \
+              --template-file awsEnv/network.yml \
+              --tags project=EksDevops \
+              --stack-name "EksDevops-network-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides  file://awsEnv/network-parameter.json --capabilities CAPABILITY_NAMED_IAM
+            echo "${CIRCLE_WORKFLOW_ID}"
+              
+      - run:
+          name: Ensure EKS Cluster exist
+          command: |
+            
+            aws cloudformation deploy \
+              --template-file awsEnv/EksCluster.yml \
+              --tags project=EksDevops \
+              --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
 
-                aws eks update-kubeconfig --name "EksDevops"
-                cp ~/.kube/config addressbook/kubeconfig
-          - save_cache:
-              paths: [addressbook/kubeconfig]
-              key: kubeconfig
+            aws eks update-kubeconfig --name "EksDevops"
+            cp ~/.kube/config addressbook/kubeconfig
 
   deploy-rolling-update:
     docker:
@@ -292,7 +285,12 @@ jobs:
       - rollback-deployment               
 
 workflows:
-  default:
+  build-infra:
+    when: << pipeline.parameters.build_infra >>
+    jobs:
+      - deploy-infrastructure
+          
+  build-and-deploy:
     jobs:
       - build-application
       - lint-code:
@@ -302,13 +300,9 @@ workflows:
       - integration-test:
           requires: [test-db]
       - build-and-push-container:
-          requires: [integration-test]
-      - deploy-infrastructure:
-          infra-tag: false
-          requires: [build-and-push-container]
-          
+          requires: [integration-test]        
       - deploy-rolling-update:
-           requires: [deploy-infrastructure]
+           requires: [build-and-push-container]
       - migrate-db:
            requires: [deploy-rolling-update]
       - smoke-test:
