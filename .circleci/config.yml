@@ -1,5 +1,21 @@
 version: 2.1
+
 commands:
+  rollback-deployment:
+    description: Rollback to the Original release.
+    parameters:
+      workflow_id:
+        type: string
+      # Add parameter here   
+    steps:
+      - checkout
+      - run:
+          name: Rollback deployment
+          when: on_fail
+          command: |
+            #kubectl rollout undo deployment/app --to-revision=2
+            kubectl rollout undo -f eksDeploy/app-deployments.yml
+            kubectl rollout undo -f eksDeploy/db-deployments.yml
 
 orbs:
   kubernetes: circleci/kubernetes@0.12.0
@@ -139,14 +155,20 @@ jobs:
             docker build -t $DOCKER_USER/addressbook:$TAG .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             
-      #docker push  $DOCKER_USER/addressbook:$TAG 
+            docker push  $DOCKER_USER/addressbook:$TAG 
       
 
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
       # Docker image here that supports AWS CLI
+    parameters:
+      infra-tag:
+        type: string
     steps:
+      - when:
+          condition:
+            equal: [ "true", << paramaters.infra-tag >> ]
       # Checkout code from git
       - checkout
       - run:
@@ -221,6 +243,22 @@ jobs:
           name: get application URL
           command: |
             echo `kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
+      - rollback-deployment:
+
+  migrate-db:
+    docker:
+      # Docker image here
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - kubernetes/install-kubectl
+      - run:
+          name: Run DB migration 
+          command: |
+            aws eks update-kubeconfig --name "EksDevops"
+            POD=$(kubectl get pod -l app=addressbook -o jsonpath="{.items[0].metadata.name}")
+            kubectl exec -it $POD -- npm run migrate
+      - rollback-deployment:
 
   smoke-test:
     docker:
@@ -255,7 +293,8 @@ jobs:
             else
               echo "smoke test failed";
               exit 1;
-            fi                  
+            fi  
+      - rollback-deployment:                
 
 workflows:
   default:
@@ -269,11 +308,13 @@ workflows:
           requires: [test-db]
       - build-and-push-container:
           requires: [integration-test]
-      #- deploy-infrastructure:
-          #requires: [build-and-push-container]
+      - deploy-infrastructure:
+          requires: [build-and-push-container]
+          infra-tag: "false"
       - deploy-rolling-update:
-           #requires: [deploy-infrastructure]
-           requires: [build-and-push-container]
-      - smoke-test:
+           requires: [deploy-infrastructure]
+      - migrate-db:
            requires: [deploy-rolling-update]
+      - smoke-test:
+           requires: [migrate-db]
       
