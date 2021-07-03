@@ -150,7 +150,7 @@ jobs:
           name: build docker image
           command: |
             cd addressbook
-            TAG=0.1.$CIRCLE_BUILD_NUM
+            TAG=0.1.<< pipeline.number >>
             docker build -t $DOCKER_USER/addressbook:$TAG .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             
@@ -206,6 +206,7 @@ jobs:
             yum install -y gzip
             yum install -y gettext
             aws eks update-kubeconfig --name "EksDevops"
+            export TAG_NUMBER=<< pipeline.number >>
             envsubst < eksDeploy/app-deployments.yml | tee eksDeploy/app-deployments.yml
       - restore_cache:
           keys: [kubeconfig]

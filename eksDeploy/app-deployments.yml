@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: addr-pod
-          image: docker.io/$DOCKER_USER/addressbook:0.1.$CIRCLE_BUILD_NUM
+          image: docker.io/$DOCKER_USER/addressbook:0.1.$TAG_NUMBER
           ports:
           - containerPort: 3000
           env:
