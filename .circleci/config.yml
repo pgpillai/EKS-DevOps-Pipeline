@@ -4,7 +4,6 @@ commands:
   rollback-deployment:
     description: Rollback to the Original release. 
     steps:
-      - checkout
       - run:
           name: Rollback deployment
           when: on_fail
@@ -160,11 +159,9 @@ jobs:
       # Docker image here that supports AWS CLI
     parameters:
       infra-tag:
-        type: string
+        type: boolean
     steps:
-      - when:
-          condition:
-            equal: [ "true", << paramaters.infra-tag >> ]
+      - when: << paramaters.infra-tag >>
       # Checkout code from git
       - checkout
       - run:
@@ -306,8 +303,9 @@ workflows:
       - build-and-push-container:
           requires: [integration-test]
       - deploy-infrastructure:
+          infra-tag: false
           requires: [build-and-push-container]
-          infra-tag: "false"
+          
       - deploy-rolling-update:
            requires: [deploy-infrastructure]
       - migrate-db:
