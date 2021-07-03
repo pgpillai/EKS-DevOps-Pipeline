@@ -13,6 +13,8 @@ commands:
           when: on_fail
           command: |
             #kubectl rollout undo deployment/app --to-revision=2
+            export TAG_NUMBER=<< pipeline.number >>
+            envsubst < eksDeploy/app-deployments.yml | tee eksDeploy/app-deployments.yml
             kubectl rollout undo -f eksDeploy/app-deployments.yml
             kubectl rollout undo -f eksDeploy/db-deployments.yml
 
