@@ -163,41 +163,42 @@ jobs:
     steps:
       when: << paramaters.infra-tag >>
       # Checkout code from git
-      - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            yum install -y tar
-            yum install -y gzip
-      - restore_cache:
-          keys: [kubeconfig]
-        
-      - run:
-          name: Ensure VPC infrastructure exists
-          command: |
+        steps:
+          - checkout
+          - run:
+              name: Install dependencies
+              command: |
+                yum install -y tar
+                yum install -y gzip
+          - restore_cache:
+              keys: [kubeconfig]
             
-            aws cloudformation deploy \
-              --template-file awsEnv/network.yml \
-              --tags project=EksDevops \
-              --stack-name "EksDevops-network-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides  file://awsEnv/network-parameter.json --capabilities CAPABILITY_NAMED_IAM
-            echo "${CIRCLE_WORKFLOW_ID}"
-              
-      - run:
-          name: Ensure EKS Cluster exist
-          command: |
-            
-            aws cloudformation deploy \
-              --template-file awsEnv/EksCluster.yml \
-              --tags project=EksDevops \
-              --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
+          - run:
+              name: Ensure VPC infrastructure exists
+              command: |
+                
+                aws cloudformation deploy \
+                  --template-file awsEnv/network.yml \
+                  --tags project=EksDevops \
+                  --stack-name "EksDevops-network-${CIRCLE_WORKFLOW_ID}" \
+                  --parameter-overrides  file://awsEnv/network-parameter.json --capabilities CAPABILITY_NAMED_IAM
+                echo "${CIRCLE_WORKFLOW_ID}"
+                  
+          - run:
+              name: Ensure EKS Cluster exist
+              command: |
+                
+                aws cloudformation deploy \
+                  --template-file awsEnv/EksCluster.yml \
+                  --tags project=EksDevops \
+                  --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
+                  --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
 
-            aws eks update-kubeconfig --name "EksDevops"
-            cp ~/.kube/config addressbook/kubeconfig
-      - save_cache:
-          paths: [addressbook/kubeconfig]
-          key: kubeconfig
+                aws eks update-kubeconfig --name "EksDevops"
+                cp ~/.kube/config addressbook/kubeconfig
+          - save_cache:
+              paths: [addressbook/kubeconfig]
+              key: kubeconfig
 
   deploy-rolling-update:
     docker:
