@@ -236,7 +236,7 @@ jobs:
           name: get application URL
           command: |
             echo `kubectl get service/addressbook -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'`
-      - rollback-deployment:
+      - rollback-deployment
 
   migrate-db:
     docker:
@@ -251,7 +251,7 @@ jobs:
             aws eks update-kubeconfig --name "EksDevops"
             POD=$(kubectl get pod -l app=addressbook -o jsonpath="{.items[0].metadata.name}")
             kubectl exec -it $POD -- npm run migrate
-      - rollback-deployment:
+      - rollback-deployment
 
   smoke-test:
     docker:
@@ -288,7 +288,7 @@ jobs:
               exit 1;
             fi  
 
-      - rollback-deployment:                
+      - rollback-deployment               
 
 workflows:
   default:
