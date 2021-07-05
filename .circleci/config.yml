@@ -297,7 +297,7 @@ workflows:
       - deploy-infrastructure
           
   build-and-deploy:
-    when: << !pipeline.parameters.build_infra >>
+    when: not << pipeline.parameters.build_infra >>
     jobs:
       - build-application
       - lint-code:
