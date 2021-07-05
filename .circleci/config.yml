@@ -2,7 +2,7 @@ version: 2.1
 parameters:
       build_infra:
         type: boolean
-        default: false
+        default: true
 
 commands:
   rollback-deployment:
@@ -191,7 +191,7 @@ jobs:
               --tags project=EksDevops \
               --stack-name "EksDevops-cluster-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides file://awsEnv/server-parameter.json  --capabilities CAPABILITY_NAMED_IAM
-
+              timeout: 2400
             aws eks update-kubeconfig --name "EksDevops"
             cp ~/.kube/config addressbook/kubeconfig
 
