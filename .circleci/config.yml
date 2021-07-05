@@ -184,6 +184,7 @@ jobs:
               
       - run:
           name: Ensure EKS Cluster exist
+          no_output_timeout: 40m
           command: |
             
             aws cloudformation deploy \
@@ -296,6 +297,7 @@ workflows:
       - deploy-infrastructure
           
   build-and-deploy:
+    when: << !pipeline.parameters.build_infra >>
     jobs:
       - build-application
       - lint-code:
