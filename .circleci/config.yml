@@ -281,7 +281,7 @@ jobs:
             if curl -s "${URL}" | grep "Bobbie"
             then
               echo "smoke test worked";
-              exit 1;
+              #exit 1;
             else
               echo "smoke test failed";
               exit 1;
