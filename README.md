@@ -1,5 +1,4 @@
 # EKS-DevOps-Pipeline
-[![CircleCI](https://circleci.com/pgpillai/EKS-DevOps-Pipeline.svg?style=svg)] (https://circleci.com/gh/pgpillai/EKS-DevOps-Pipeline)
 [![CircleCI](https://circleci.com/gh/pgpillai/EKS-DevOps-Pipeline.svg?style=svg)](https://circleci.com/gh/pgpillai/EKS-DevOps-Pipeline)
 
 The project demonstrate creating EKS cluster using CloudFormation, It also shows end to end CI/CD pipeline to deploy a node application to EKS cluster.
